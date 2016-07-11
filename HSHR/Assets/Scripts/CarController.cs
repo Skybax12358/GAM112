@@ -5,6 +5,9 @@ using System.Collections;
 public class CarController : MonoBehaviour
 {
 
+    //Public variables
+
+    //Wheel variables
     public float idealRPM = 500f;
     public float maxRPM = 1000f;
 
@@ -16,61 +19,62 @@ public class CarController : MonoBehaviour
     public WheelCollider wheelRR;
     public WheelCollider wheelRL;
 
-    //public float turnRadius = 6f;
+    //Suspension + braking variables
     public float torque = 25f;
     public float brakeTorque = 100f;
 
     public float AntiRoll = 20000.0f;
 
+    //Drivetype variables
     public enum DriveMode { Front, Rear, All };
     public DriveMode driveMode = DriveMode.Rear;
 
+    //UI variables
     public Text speedText;
 
-    void Start()
-    {
+    void Start() {
         rb = GetComponent<Rigidbody>();
         rb.centerOfMass = centerOfGravity.localPosition;
     }
 
-    public float Speed()
-    {
+    //Get speed based on wheel size
+    public float Speed() {
         return wheelRR.radius * Mathf.PI * wheelRR.rpm * 60f / 1000f;
     }
 
-    public float Rpm()
-    {
+    //Returns RPM for use with throttle
+    public float Rpm() {
         return wheelRL.rpm;
     }
 
-    void FixedUpdate()
-    {
+    void FixedUpdate() {
 
         if (speedText != null)
             speedText.text = "Speed: " + Speed().ToString("f0") + " km/h";
 
         //Debug.Log ("Speed: " + (wheelRR.radius * Mathf.PI * wheelRR.rpm * 60f / 1000f) + "km/h    RPM: " + wheelRL.rpm);
 
+        //Smooth acceleration * twisting power of the car
         float scaledTorque = Input.GetAxis("Vertical") * torque;
 
+        //Scale torque to be higher down low, clamps overall torque
         if (wheelRL.rpm < idealRPM)
             scaledTorque = Mathf.Lerp(scaledTorque / 10f, scaledTorque, wheelRL.rpm / idealRPM);
         else
             scaledTorque = Mathf.Lerp(scaledTorque, 0, (wheelRL.rpm - idealRPM) / (maxRPM - idealRPM));
 
+        //Suspension + anti roll
         DoRollBar(wheelFR, wheelFL);
         DoRollBar(wheelRR, wheelRL);
 
-        //wheelFR.steerAngle = Input.GetAxis("Horizontal") * turnRadius;
-        //wheelFL.steerAngle = Input.GetAxis("Horizontal") * turnRadius;
-
+        //Drivemode - RWD, FWD or ALL
         wheelFR.motorTorque = driveMode == DriveMode.Rear ? 0 : scaledTorque;
         wheelFL.motorTorque = driveMode == DriveMode.Rear ? 0 : scaledTorque;
         wheelRR.motorTorque = driveMode == DriveMode.Front ? 0 : scaledTorque;
         wheelRL.motorTorque = driveMode == DriveMode.Front ? 0 : scaledTorque;
 
-        if (Input.GetButton("Fire1"))
-        {
+        //Movement
+        if (Input.GetButton("Fire1")) {
             wheelFR.brakeTorque = brakeTorque;
             wheelFL.brakeTorque = brakeTorque;
             wheelRR.brakeTorque = brakeTorque;
@@ -84,13 +88,13 @@ public class CarController : MonoBehaviour
         }
     }
 
-
-    void DoRollBar(WheelCollider WheelL, WheelCollider WheelR)
-    {
+    //Antiroll function
+    void DoRollBar(WheelCollider WheelL, WheelCollider WheelR) {
         WheelHit hit;
         float travelL = 1.0f;
         float travelR = 1.0f;
 
+        //if either wheel is feeling force
         bool groundedL = WheelL.GetGroundHit(out hit);
         if (groundedL)
             travelL = (-WheelL.transform.InverseTransformPoint(hit.point).y - WheelL.radius) / WheelL.suspensionDistance;
