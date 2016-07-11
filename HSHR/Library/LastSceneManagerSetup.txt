@@ -1,0 +1,4 @@
+sceneSetups:
+- path: Assets/hshr.unity
+  isLoaded: 1
+  isActive: 1
