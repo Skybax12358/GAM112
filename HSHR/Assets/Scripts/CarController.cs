@@ -6,7 +6,7 @@ public class CarController : MonoBehaviour
 {
 
     //Public variables
-
+    public Slider movementSlider; 
     //Wheel variables
     public float idealRPM = 500f;
     public float maxRPM = 1000f;
@@ -21,7 +21,7 @@ public class CarController : MonoBehaviour
 
     //Suspension + braking variables
     public float torque = 25f;
-    public float brakeTorque = 100f;
+    public float brakeTorque;
 
     public float AntiRoll = 20000.0f;
 
@@ -49,6 +49,10 @@ public class CarController : MonoBehaviour
 
     void FixedUpdate() {
 
+        brakeTorque = movementSlider.value;
+
+        Movement();
+
         if (speedText != null)
             speedText.text = "Speed: " + Speed().ToString("f0") + " km/h";
 
@@ -74,18 +78,15 @@ public class CarController : MonoBehaviour
         wheelRL.motorTorque = driveMode == DriveMode.Front ? 0 : scaledTorque;
 
         //Movement
-        if (Input.GetButton("Fire1")) {
-            wheelFR.brakeTorque = brakeTorque;
-            wheelFL.brakeTorque = brakeTorque;
-            wheelRR.brakeTorque = brakeTorque;
-            wheelRL.brakeTorque = brakeTorque;
-        }
+        //if (Input.GetButton("Fire1")) {
+           
+        /*}
         else {
             wheelFR.brakeTorque = 0;
             wheelFL.brakeTorque = 0;
             wheelRR.brakeTorque = 0;
             wheelRL.brakeTorque = 0;
-        }
+        }*/
     }
 
     //Antiroll function
@@ -113,4 +114,11 @@ public class CarController : MonoBehaviour
                                          WheelR.transform.position);
     }
 
+    public void Movement()
+    {
+        wheelFR.brakeTorque = movementSlider.value;
+        wheelFL.brakeTorque = movementSlider.value;
+        wheelRR.brakeTorque = movementSlider.value;
+        wheelRL.brakeTorque = movementSlider.value;
+    }
 }
